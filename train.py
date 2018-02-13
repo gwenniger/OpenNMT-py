@@ -370,6 +370,14 @@ def build_optim(model, checkpoint):
 
     optim.set_parameters(model.parameters())
 
+    # Gideon: we don't want to get the_decay_at from the model
+    # but rather from the configuration parameters. Otherwise
+    # we can never change this parameter for an existing model!
+    optim.start_decay_at = opt.start_decay_at
+    # Same for learning rate decay
+    optim.lr_decay = opt.learning_rate_decay	
+
+
     return optim
 
 
