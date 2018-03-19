@@ -353,6 +353,8 @@ def build_optim(model, checkpoint):
     if opt.train_from:
         print('Loading optimizer from checkpoint.')
         optim = checkpoint['optim']
+        #print("checkpoint['optim'].optimizer.state_dict(): " + str(
+        #    checkpoint['optim'].optimizer.state_dict()))
         optim.optimizer.load_state_dict(
             checkpoint['optim'].optimizer.state_dict())
     else:
@@ -368,7 +370,22 @@ def build_optim(model, checkpoint):
             warmup_steps=opt.warmup_steps,
             model_size=opt.rnn_size)
 
-    optim.set_parameters(model.parameters())
+        # Essentially optim.set_parameters makes a new optimizer with a
+        # blank optimizer state.
+        # So this should only be executed when we are not loading an existing
+        # optimizer, because it will erase parameters such as Adams "exp_avg"
+        # "exp_avg_sq" etc. Also, the  name of this method is misleading, and should
+        # perhaps be changed.
+        optim.set_parameters(model.parameters())
+
+    if opt.train_from:
+        # We want to make sure that indeed we have a non-empty optimizer state
+        # when we loaded an existing model. This should be at least the case for Adam,
+        # which saves "exp_avg" and "exp_avg_sq" state (Exponential moving average
+        # of gradient and squared gradient values)
+        if (optim.method == 'adam') and (len(optim.optimizer.state) < 1):
+            raise RuntimeError("Error: loaded Adam optimizer from existing model" +
+                               " but optimizer state is empty")
 
     # Gideon: we don't want to get the_decay_at from the model
     # but rather from the configuration parameters. Otherwise
@@ -376,7 +393,6 @@ def build_optim(model, checkpoint):
     optim.start_decay_at = opt.start_decay_at
     # Same for learning rate decay
     optim.lr_decay = opt.learning_rate_decay	
-
 
     return optim
 
