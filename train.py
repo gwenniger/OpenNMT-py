@@ -423,9 +423,9 @@ def show_optimizer_state(optim):
     for key in optim.optimizer.state_dict()['state'].keys():
         print("optim.optimizer.state_dict()['state'] key: " + key)
 
-    print("optim.optimizer.state_dict()['param_groups'] keys: ")
-    for key in optim.optimizer.state_dict()['param_groups'].keys():
-        print("optim.optimizer.state_dict()['param_groups'] key: " + key)
+    print("optim.optimizer.state_dict()['param_groups'] elements: ")
+    for element in optim.optimizer.state_dict()['param_groups']:
+        print("optim.optimizer.state_dict()['param_groups'] element: " + element)
 
 
 def main():
