@@ -350,6 +350,8 @@ def build_model(model_opt, opt, fields, checkpoint):
 
 
 def build_optim(model, checkpoint):
+    saved_optimizer_state_dict = None
+
     if opt.train_from:
         print('Loading optimizer from checkpoint.')
         optim = checkpoint['optim']
@@ -357,6 +359,7 @@ def build_optim(model, checkpoint):
         #    checkpoint['optim'].optimizer.state_dict()))
         optim.optimizer.load_state_dict(
             checkpoint['optim'].optimizer.state_dict())
+        saved_optimizer_state_dict = checkpoint['optim'].optimizer.state_dict()
     else:
         print('Making optimizer for training.')
         optim = onmt.Optim(
@@ -376,9 +379,15 @@ def build_optim(model, checkpoint):
         # optimizer, because it will erase parameters such as Adams "exp_avg"
         # "exp_avg_sq" etc. Also, the  name of this method is misleading, and should
         # perhaps be changed.
-        optim.set_parameters(model.parameters())
+    optim.set_parameters(model.parameters())
+    #print("After: checkpoint['optim'].optimizer.state_dict(): " + str(
+    #    checkpoint['optim'].optimizer.state_dict()))
+    #print("After: optimizer_state_dict: " + str(saved_optimizer_state_dict))
 
     if opt.train_from:
+
+        optim.optimizer.load_state_dict(saved_optimizer_state_dict)
+
         # We want to make sure that indeed we have a non-empty optimizer state
         # when we loaded an existing model. This should be at least the case for Adam,
         # which saves "exp_avg" and "exp_avg_sq" state (Exponential moving average
