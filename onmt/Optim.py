@@ -53,6 +53,9 @@ class Optim(object):
         self.warmup_steps = warmup_steps
         self.model_size = model_size
 
+    def set_parameters_only(self, params):
+        self.params = [p for p in params if p.requires_grad]
+
     def set_parameters(self, params):
         self.params = [p for p in params if p.requires_grad]
         if self.method == 'sgd':

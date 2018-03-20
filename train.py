@@ -385,8 +385,13 @@ def build_optim(model, checkpoint):
     #print("After: optimizer_state_dict: " + str(saved_optimizer_state_dict))
 
     if opt.train_from:
-
+        # See: https://github.com/pytorch/pytorch/issues/2830
         optim.optimizer.load_state_dict(saved_optimizer_state_dict)
+        # Convert back the state values to cuda type if applicable
+        for state in optim.optimizer.state.values():
+            for k, v in state.items():
+                if torch.is_tensor(v):
+                    state[k] = v.cuda()
 
         # We want to make sure that indeed we have a non-empty optimizer state
         # when we loaded an existing model. This should be at least the case for Adam,
