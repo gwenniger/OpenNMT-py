@@ -419,13 +419,13 @@ def build_optim(model, checkpoint):
 
 # Debugging method for showing the optimizer state
 def show_optimizer_state(optim):
-    print("optim.optimizer.state_dict['state'] keys: ")
+    print("optim.optimizer.state_dict()['state'] keys: ")
     for key in optim.optimizer.state_dict()['state'].keys():
-        print("optim.optimizer.state_dict['state'] key: " + key)
+        print("optim.optimizer.state_dict()['state'] key: " + key)
 
-    print("optim.optimizer.state_dict['param_group'] keys: ")
-    for key in optim.optimizer.state_dict()['param_group'].keys():
-        print("optim.optimizer.state_dict['param_group'] key: " + key)
+    print("optim.optimizer.state_dict()['param_groups'] keys: ")
+    for key in optim.optimizer.state_dict()['param_groups'].keys():
+        print("optim.optimizer.state_dict()['param_groups'] key: " + key)
 
 
 def main():
