@@ -355,11 +355,11 @@ def build_optim(model, checkpoint):
     if opt.train_from:
         print('Loading optimizer from checkpoint.')
         optim = checkpoint['optim']
-        #print("checkpoint['optim'].optimizer.state_dict(): " + str(
-        #    checkpoint['optim'].optimizer.state_dict()))
-        optim.optimizer.load_state_dict(
-            checkpoint['optim'].optimizer.state_dict())
-        saved_optimizer_state_dict = checkpoint['optim'].optimizer.state_dict()
+        # We need to save a copy of optim.optimizer.state_dict() for setting the,
+        # optimizer state later on in Stage 2 in this method, since
+        # the method optim.set_parameters(model.parameters()) will overwrite
+        # optim.optimizer, and with ith the values stored in  optim.optimizer.state_dict()
+        saved_optimizer_state_dict = optim.optimizer.state_dict()
     else:
         print('Making optimizer for training.')
         optim = onmt.Optim(
@@ -373,21 +373,21 @@ def build_optim(model, checkpoint):
             warmup_steps=opt.warmup_steps,
             model_size=opt.rnn_size)
 
-        # Essentially optim.set_parameters makes a new optimizer with a
-        # blank optimizer state.
-        # So this should only be executed when we are not loading an existing
-        # optimizer, because it will erase parameters such as Adams "exp_avg"
-        # "exp_avg_sq" etc. Also, the  name of this method is misleading, and should
-        # perhaps be changed.
+    # Stage 1:
+    # Essentially optim.set_parameters (re-)creates and optimizer using
+    # model.paramters() as parameters that will be stored in the
+    # optim.optimizer.param_groups field of the torch optimizer class.
+    # Importantly, this method does not yet load the optimizer state, as essentially
+    # it builds a new optimizer with empty optimizer state and parameters from the model.
     optim.set_parameters(model.parameters())
-    print("State 1: Keys after executing optim.set_parameters(model.parameters())")
+    print("Stage 1: Keys after executing optim.set_parameters(model.parameters())")
     show_optimizer_state(optim)
 
-    #print("After: checkpoint['optim'].optimizer.state_dict(): " + str(
-    #    checkpoint['optim'].optimizer.state_dict()))
-    #print("After: optimizer_state_dict: " + str(saved_optimizer_state_dict))
-
     if opt.train_from:
+        # Stage 2: In this stage, which is only performed when loading an optimizer from a
+        # checkpoint, we load the saved_optimizer_state_dict into the re-created optimizer,
+        # to set the optim.optimizer.state field, which was previously empty. For this, we use the
+        # optimizer state saved in the "saved_optimizer_state_dict" variable for this purpose.
         # See: https://github.com/pytorch/pytorch/issues/2830
         optim.optimizer.load_state_dict(saved_optimizer_state_dict)
         # Convert back the state values to cuda type if applicable
@@ -396,7 +396,7 @@ def build_optim(model, checkpoint):
                 if torch.is_tensor(v):
                     state[k] = v.cuda()
 
-        print("State 2: Keys after executing  optim.optimizer.load_state_dict(saved_optimizer_state_dict)")
+        print("Stage 2: Keys after executing  optim.optimizer.load_state_dict(saved_optimizer_state_dict)")
         show_optimizer_state(optim)
 
         # We want to make sure that indeed we have a non-empty optimizer state
