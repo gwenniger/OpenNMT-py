@@ -416,7 +416,7 @@ def build_optim(model, checkpoint):
 
     return optim
 
-@staticmethod
+
 # Debugging method for showing the optimizer state
 def show_optimizer_state(optim):
     print("optim.optimizer.state_dict['state'] keys: ")
