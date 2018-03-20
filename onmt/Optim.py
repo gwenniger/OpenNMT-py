@@ -65,6 +65,12 @@ class Optim(object):
         self.decay_method = decay_method
         self.warmup_steps = warmup_steps
         self.model_size = model_size
+        print("Optim.init. lr " + str(self.lr))
+        print("Optim.init. self.lr_decay: " + str(self.lr_decay))
+        print("Optim.init. self.statrt_decay_at: " + str(self.start_decay_at))
+        print("Optim.init. self.betas[0]: " + str(self.betas[0]))
+        print("Optim.init. self.betas[1]: " + str(self.betas[1]))
+ 
 
     def set_parameters_only(self, params):
         self.params = [p for p in params if p.requires_grad]

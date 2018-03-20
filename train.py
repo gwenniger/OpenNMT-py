@@ -431,12 +431,21 @@ def build_optim(model, checkpoint):
                 "Error: loaded Adam optimizer from existing model" +
                 " but optimizer state is empty")
 
-    # Gideon: we don't want to get the_decay_at from the model
-    #  but rather from the configuration parameters. Otherwise
+    # We don't want to get the_decay_at from the model
+    # but rather from the configuration parameters. Otherwise
     # we can never change this parameter for an existing model!
+    print("Info: before setting -  optim.start_decay_at: " 
+        + str(optim.start_decay_at))
     optim.start_decay_at = opt.start_decay_at
+    print("Info: after optim.start_decay_at: " + str(optim.start_decay_at))
     # Same for learning rate decay
     optim.lr_decay = opt.learning_rate_decay
+    print("Info: Learning rate related values at the end of build_optim:")
+    print("optim.lr: " + str(optim.lr))
+    print("optim.lr_decay: " + str(optim.lr_decay))
+    print("optim.start_decay: " + str(optim.start_decay))
+    print("optim.betas: " + str(optim.betas))
+
 
     return optim
 
