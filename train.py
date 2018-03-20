@@ -380,6 +380,9 @@ def build_optim(model, checkpoint):
         # "exp_avg_sq" etc. Also, the  name of this method is misleading, and should
         # perhaps be changed.
     optim.set_parameters(model.parameters())
+    print("State 1: Keys after executing optim.set_parameters(model.parameters())")
+    show_optimizer_state(optim)
+
     #print("After: checkpoint['optim'].optimizer.state_dict(): " + str(
     #    checkpoint['optim'].optimizer.state_dict()))
     #print("After: optimizer_state_dict: " + str(saved_optimizer_state_dict))
@@ -392,6 +395,9 @@ def build_optim(model, checkpoint):
             for k, v in state.items():
                 if torch.is_tensor(v):
                     state[k] = v.cuda()
+
+        print("State 2: Keys after executing  optim.optimizer.load_state_dict(saved_optimizer_state_dict)")
+        show_optimizer_state(optim)
 
         # We want to make sure that indeed we have a non-empty optimizer state
         # when we loaded an existing model. This should be at least the case for Adam,
@@ -409,6 +415,17 @@ def build_optim(model, checkpoint):
     optim.lr_decay = opt.learning_rate_decay	
 
     return optim
+
+@staticmethod
+# Debugging method for showing the optimizer state
+def show_optimizer_state(optim):
+    print("optim.optimizer.state_dict['state'] keys: ")
+    for key in optim.optimizer.state_dict()['state'].keys():
+        print("optim.optimizer.state_dict['state'] key: " + key)
+
+    print("optim.optimizer.state_dict['param_group'] keys: ")
+    for key in optim.optimizer.state_dict()['param_group'].keys():
+        print("optim.optimizer.state_dict['param_group'] key: " + key)
 
 
 def main():
