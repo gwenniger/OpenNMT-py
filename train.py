@@ -421,11 +421,11 @@ def build_optim(model, checkpoint):
 def show_optimizer_state(optim):
     print("optim.optimizer.state_dict()['state'] keys: ")
     for key in optim.optimizer.state_dict()['state'].keys():
-        print("optim.optimizer.state_dict()['state'] key: " + key)
+        print("optim.optimizer.state_dict()['state'] key: " + str(key))
 
     print("optim.optimizer.state_dict()['param_groups'] elements: ")
     for element in optim.optimizer.state_dict()['param_groups']:
-        print("optim.optimizer.state_dict()['param_groups'] element: " + element)
+        print("optim.optimizer.state_dict()['param_groups'] element: " + str(element))
 
 
 def main():
