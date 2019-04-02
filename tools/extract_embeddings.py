@@ -1,11 +1,14 @@
-from __future__ import division
-import torch
 import argparse
-import opts
+
+import torch
+
 import onmt
-import onmt.ModelConstructor
-import onmt.io
-from onmt.Utils import use_gpu
+import onmt.model_builder
+import onmt.inputters as inputters
+import onmt.opts
+
+from onmt.utils.misc import use_gpu
+from onmt.utils.logging import init_logger, logger
 
 parser = argparse.ArgumentParser(description='translate.py')
 
@@ -28,7 +31,7 @@ def write_embeddings(filename, dict, embeddings):
 
 def main():
     dummy_parser = argparse.ArgumentParser(description='train.py')
-    opts.model_opts(dummy_parser)
+    onmt.opts.model_opts(dummy_parser)
     dummy_opt = dummy_parser.parse_known_args([])[0]
     opt = parser.parse_args()
     opt.cuda = opt.gpu > -1
@@ -39,35 +42,40 @@ def main():
     checkpoint = torch.load(opt.model,
                             map_location=lambda storage, loc: storage)
     model_opt = checkpoint['opt']
-    src_dict = checkpoint['vocab'][1][1]
-    tgt_dict = checkpoint['vocab'][0][1]
 
-    fields = onmt.io.load_fields_from_vocab(checkpoint['vocab'])
+    vocab = checkpoint['vocab']
+    if inputters.old_style_vocab(vocab):
+        fields = onmt.inputters.load_old_vocab(vocab)
+    else:
+        fields = vocab
+    src_dict = fields['src'].base_field.vocab  # assumes src is text
+    tgt_dict = fields['tgt'].base_field.vocab
 
     model_opt = checkpoint['opt']
     for arg in dummy_opt.__dict__:
         if arg not in model_opt:
             model_opt.__dict__[arg] = dummy_opt.__dict__[arg]
 
-    model = onmt.ModelConstructor.make_base_model(
-                            model_opt, fields, use_gpu(opt), checkpoint)
+    model = onmt.model_builder.build_base_model(
+        model_opt, fields, use_gpu(opt), checkpoint)
     encoder = model.encoder
     decoder = model.decoder
 
     encoder_embeddings = encoder.embeddings.word_lut.weight.data.tolist()
     decoder_embeddings = decoder.embeddings.word_lut.weight.data.tolist()
 
-    print("Writing source embeddings")
+    logger.info("Writing source embeddings")
     write_embeddings(opt.output_dir + "/src_embeddings.txt", src_dict,
                      encoder_embeddings)
 
-    print("Writing target embeddings")
+    logger.info("Writing target embeddings")
     write_embeddings(opt.output_dir + "/tgt_embeddings.txt", tgt_dict,
                      decoder_embeddings)
 
-    print('... done.')
-    print('Converting model...')
+    logger.info('... done.')
+    logger.info('Converting model...')
 
 
 if __name__ == "__main__":
+    init_logger('extract_embeddings.log')
     main()
