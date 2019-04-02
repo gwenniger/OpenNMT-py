@@ -100,7 +100,6 @@ def _get_parser():
     opts.model_opts(parser)
     opts.train_opts(parser)
     return parser
->>>>>>> upstream/master
 
 
 if __name__ == "__main__":
